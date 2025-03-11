@@ -1,42 +1,58 @@
 export default {
   async fetch(request, env, ctx) {
     const { url } = request;
+    const init = {
+      status: 200,
+      headers: {
+        "content-type": "application/json"
+      }
+    };
+
     if (request.method === "POST") {
       if (url.includes("notifications")) {
         const input = await request.json();
-        console.log(input); //{"phone":"1234567890","template":"template_name"}
+        console.log(input); // {"phone":"1234567890","template":"template_name"}
 
-        if (input.phone && input.template){
-          var result = await sendNotification(input.phone, input.template,env);
-          return new Response(JSON.stringify(result));
+        if (input.phone && input.template) {
+          var result = await sendNotification(input.phone, input.template, env);
+          return new Response(JSON.stringify(result), init);
         } else {
-          return new Response("No Phone or Template provided", {status:400});
+          return new Response("No Phone or Template provided", { status: 400 });
         }
       } else if (url.includes("messages")) {
         const input = await request.json();
-        console.log(input); //{"requester":"1234567890","message":"message"}
+        console.log(input); // {"requester":"1234567890","message":"message"}
 
-        if (input.requester && input.message){
-          var messaging_id = await getIdentities(input.requester,env);
-          if (messaging_id == ''){
-            return new Response("No messaging_id found", {status:400});
+        if (input.requester && input.message) {
+          var messaging_id = await getIdentities(input.requester, env);
+          if (messaging_id == '') {
+            return new Response(JSON.stringify({
+              success: false,
+              message: "No messaging_id found"
+            }), { status: 400 });
           } else {
-            var conversation_id = await getConversationId(messaging_id,env);
-            if (conversation_id){
-              var result = await sendMessage(conversation_id, input.message,env);
-              return new Response(JSON.stringify(result), init);
+            var conversation_id = await getConversationId(messaging_id, env);
+            if (conversation_id) {
+              var result = await sendMessage(conversation_id, input.message, env);
+              return new Response(JSON.stringify({
+                success: true,
+                message: "Message sent successfully",
+                data: result
+              }), init);
             } else {
-              return new Response("No conversation_id found", {status:400});
+              return new Response(JSON.stringify({
+                success: false,
+                message: "No conversation_id found"
+              }), { status: 400 });
             }
           }
         } else {
-          return new Response("No requester or message provided", {status:400});
+          return new Response(JSON.stringify({
+            success: false,
+            message: "No requester or message provided"
+          }), { status: 400 });
         }
-      } else {
-        return new Response ("No accessible path", {status:400});
       }
-    } else if (request.method === "GET") {
-      return new Response("The request was a GET");
     }
   }
 };
