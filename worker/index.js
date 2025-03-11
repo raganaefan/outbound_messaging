@@ -24,7 +24,7 @@ export default {
             var conversation_id = await getConversationId(messaging_id,env);
             if (conversation_id){
               var result = await sendMessage(conversation_id, input.message,env);
-              return new Response(JSON.stringify(result), init);
+              return new Response(JSON.stringify(result));
             } else {
               return new Response("No conversation_id found", {status:400});
             }
