@@ -16,28 +16,35 @@ export default {
         const input = await request.json();
         console.log(input); //{"requester":"1234567890","message":"message"}
 
-        if (input.requester && input.message){
-          var messaging_id = await getIdentities(input.requester,env);
-          if (messaging_id == ''){
-            return new Response("No messaging_id found", {status:400});
-          } else {
-            var conversation_id = await getConversationId(messaging_id,env);
-            if (conversation_id){
-              var result = await sendMessage(conversation_id, input.message,env);
-              return new Response(JSON.stringify(result), init);
-            } else {
-              return new Response("No conversation_id found", {status:400});
-            }
-          }
-        } else {
-          return new Response("No requester or message provided", {status:400});
-        }
-      } else {
-        return new Response ("No accessible path", {status:400});
-      }
-    } else if (request.method === "GET") {
-      return new Response("The request was a GET");
+        if (input.requester && input.message) {
+  var messaging_id = await getIdentities(input.requester, env);
+  if (messaging_id == '') {
+    return new Response(JSON.stringify({
+      success: false,
+      message: "No messaging_id found"
+    }), { status: 400 });
+  } else {
+    var conversation_id = await getConversationId(messaging_id, env);
+    if (conversation_id) {
+      var result = await sendMessage(conversation_id, input.message, env);
+      return new Response(JSON.stringify({
+        success: true,
+        message: "Message sent successfully",
+        data: result
+      }), init);
+    } else {
+      return new Response(JSON.stringify({
+        success: false,
+        message: "No conversation_id found"
+      }), { status: 400 });
     }
+  }
+} else {
+  return new Response(JSON.stringify({
+    success: false,
+    message: "No requester or message provided"
+  }), { status: 400 });
+}
   }
 };
 
